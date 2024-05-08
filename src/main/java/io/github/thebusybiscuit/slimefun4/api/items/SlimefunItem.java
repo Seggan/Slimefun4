@@ -14,8 +14,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import io.github.thebusybiscuit.slimefun4.core.services.LegacyIdService;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -69,7 +71,7 @@ public class SlimefunItem implements Placeable {
     /**
      * This is our item id.
      */
-    private final String id;
+    private final NamespacedKey id;
 
     /**
      * This is the original {@link ItemStack} that represents this item.
@@ -162,7 +164,7 @@ public class SlimefunItem implements Placeable {
 
     // Previously deprecated constructor, now only for internal purposes
     @ParametersAreNonnullByDefault
-    protected SlimefunItem(ItemGroup itemGroup, ItemStack item, String id, RecipeType recipeType, ItemStack[] recipe) {
+    protected SlimefunItem(ItemGroup itemGroup, ItemStack item, NamespacedKey id, RecipeType recipeType, ItemStack[] recipe) {
         Validate.notNull(itemGroup, "'itemGroup' is not allowed to be null!");
         Validate.notNull(item, "'item' is not allowed to be null!");
         Validate.notNull(id, "'id' is not allowed to be null!");
@@ -180,8 +182,8 @@ public class SlimefunItem implements Placeable {
      *
      * @return the identifier of this {@link SlimefunItem}
      */
-    public final @Nonnull String getId() {
-        return id;
+    public final @Nonnull NamespacedKey getId() {
+        return Slimefun.getLegacyIdService().convertTempId(id);
     }
 
     /**
@@ -764,7 +766,7 @@ public class SlimefunItem implements Placeable {
         }
 
         if (item.hasItemMeta()) {
-            Optional<String> itemId = Slimefun.getItemDataService().getItemData(item);
+            Optional<NamespacedKey> itemId = Slimefun.getItemDataService().getItemData(item);
 
             if (itemId.isPresent()) {
                 return getId().equals(itemId.get());
@@ -1155,8 +1157,24 @@ public class SlimefunItem implements Placeable {
      *            The id of the {@link SlimefunItem}
      * @return The {@link SlimefunItem} associated with that id. Null if non-existent
      */
+    public static @Nullable SlimefunItem getById(@Nonnull NamespacedKey id) {
+        return Slimefun.getRegistry().getSlimefunItemIds().get(
+                Slimefun.getLegacyIdService().convertTempId(id)
+        );
+    }
+
+    /**
+     * Retrieve a {@link SlimefunItem} by its id.
+     *
+     * @param id
+     *           The id of the {@link SlimefunItem}
+     * @return The {@link SlimefunItem} associated with that id. Null if non-existent.
+     *
+     * @deprecated Use {@link #getById(NamespacedKey)} instead
+     */
+    @Deprecated
     public static @Nullable SlimefunItem getById(@Nonnull String id) {
-        return Slimefun.getRegistry().getSlimefunItemIds().get(id);
+        return getById(LegacyIdService.legacyIdToNamespacedKey(id));
     }
 
     /**
@@ -1186,7 +1204,7 @@ public class SlimefunItem implements Placeable {
             return getById(stack.getItemId());
         }
 
-        Optional<String> itemID = Slimefun.getItemDataService().getItemData(item);
+        Optional<NamespacedKey> itemID = Slimefun.getItemDataService().getItemData(item);
 
         return itemID.map(SlimefunItem::getById).orElse(null);
 

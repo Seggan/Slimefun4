@@ -6,8 +6,10 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.github.thebusybiscuit.slimefun4.core.services.LegacyIdService;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -26,7 +28,7 @@ public abstract class BlockMenuPreset extends ChestMenu {
 
     private final Set<Integer> occupiedSlots = new HashSet<>();
     private final String inventoryTitle;
-    private final String id;
+    private final NamespacedKey id;
 
     // -1 means "automatically update according to the contents"
     private int size = -1;
@@ -34,11 +36,19 @@ public abstract class BlockMenuPreset extends ChestMenu {
     private final boolean universal;
     private boolean locked;
 
-    protected BlockMenuPreset(@Nonnull String id, @Nonnull String title) {
+    protected BlockMenuPreset(@Nonnull NamespacedKey id, @Nonnull String title) {
         this(id, title, false);
     }
 
-    protected BlockMenuPreset(@Nonnull String id, @Nonnull String title, boolean universal) {
+    /**
+     * @deprecated Use {@link #BlockMenuPreset(NamespacedKey, String)} instead
+     */
+    @Deprecated
+    protected BlockMenuPreset(@Nonnull String id, @Nonnull String title) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), title);
+    }
+
+    protected BlockMenuPreset(@Nonnull NamespacedKey id, @Nonnull String title, boolean universal) {
         super(title);
 
         Validate.notNull(id, "You need to specify an id!");
@@ -49,6 +59,14 @@ public abstract class BlockMenuPreset extends ChestMenu {
         init();
 
         Slimefun.getRegistry().getMenuPresets().put(id, this);
+    }
+
+    /**
+     * @deprecated Use {@link #BlockMenuPreset(NamespacedKey, String, boolean)} instead
+     */
+    @Deprecated
+    protected BlockMenuPreset(@Nonnull String id, @Nonnull String title, boolean universal) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), title, universal);
     }
 
     private void checkIfLocked() {
@@ -269,7 +287,7 @@ public abstract class BlockMenuPreset extends ChestMenu {
      */
 
     @Nonnull
-    public String getID() {
+    public NamespacedKey getID() {
         return id;
     }
 
@@ -285,7 +303,7 @@ public abstract class BlockMenuPreset extends ChestMenu {
     }
 
     @Nullable
-    public static BlockMenuPreset getPreset(@Nullable String id) {
+    public static BlockMenuPreset getPreset(@Nullable NamespacedKey id) {
         return id == null ? null : Slimefun.getRegistry().getMenuPresets().get(id);
     }
 
@@ -293,7 +311,7 @@ public abstract class BlockMenuPreset extends ChestMenu {
         return Slimefun.getRegistry().getMenuPresets().containsKey(id);
     }
 
-    public static boolean isUniversalInventory(String id) {
+    public static boolean isUniversalInventory(NamespacedKey id) {
         BlockMenuPreset preset = Slimefun.getRegistry().getMenuPresets().get(id);
         return preset != null && preset.isUniversal();
     }

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
 import org.bukkit.World;
 
@@ -26,7 +28,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 
 /**
  * This Service is responsible for disabling a {@link SlimefunItem} in a certain {@link World}.
- * 
+ *
  * @author TheBusyBiscuit
  *
  */
@@ -34,7 +36,7 @@ public class PerWorldSettingsService {
 
     private final Slimefun plugin;
 
-    private final OptionalMap<UUID, Set<String>> disabledItems = new OptionalMap<>(HashMap::new);
+    private final OptionalMap<UUID, Set<NamespacedKey>> disabledItems = new OptionalMap<>(HashMap::new);
     private final Map<SlimefunAddon, Set<String>> disabledAddons = new HashMap<>();
     private final Set<UUID> disabledWorlds = new HashSet<>();
 
@@ -44,7 +46,7 @@ public class PerWorldSettingsService {
 
     /**
      * This method will forcefully load all currently active Worlds to load up their settings.
-     * 
+     *
      * @param worlds
      *            An {@link Iterable} of {@link World Worlds} to load
      */
@@ -56,7 +58,7 @@ public class PerWorldSettingsService {
 
     /**
      * This method loads the given {@link World} if it was not loaded before.
-     * 
+     *
      * @param world
      *            The {@link World} to load
      */
@@ -67,19 +69,19 @@ public class PerWorldSettingsService {
 
     /**
      * This method checks whether the given {@link SlimefunItem} is enabled in the given {@link World}.
-     * 
+     *
      * @param world
      *            The {@link World} to check
      * @param item
      *            The {@link SlimefunItem} that should be checked
-     * 
+     *
      * @return Whether the given {@link SlimefunItem} is enabled in that {@link World}
      */
     public boolean isEnabled(@Nonnull World world, @Nonnull SlimefunItem item) {
         Validate.notNull(world, "The world cannot be null");
         Validate.notNull(item, "The SlimefunItem cannot be null");
 
-        Set<String> items = disabledItems.computeIfAbsent(world.getUID(), id -> loadWorldFromConfig(world));
+        Set<NamespacedKey> items = disabledItems.computeIfAbsent(world.getUID(), id -> loadWorldFromConfig(world));
 
         if (disabledWorlds.contains(world.getUID())) {
             return false;
@@ -90,7 +92,7 @@ public class PerWorldSettingsService {
 
     /**
      * This method enables or disables the given {@link SlimefunItem} in the specified {@link World}.
-     * 
+     *
      * @param world
      *            The {@link World} in which to disable or enable the given {@link SlimefunItem}
      * @param item
@@ -102,7 +104,7 @@ public class PerWorldSettingsService {
         Validate.notNull(world, "The world cannot be null");
         Validate.notNull(item, "The SlimefunItem cannot be null");
 
-        Set<String> items = disabledItems.computeIfAbsent(world.getUID(), id -> loadWorldFromConfig(world));
+        Set<NamespacedKey> items = disabledItems.computeIfAbsent(world.getUID(), id -> loadWorldFromConfig(world));
 
         if (enabled) {
             items.remove(item.getId());
@@ -113,7 +115,7 @@ public class PerWorldSettingsService {
 
     /**
      * This method enables or disables the given {@link World}.
-     * 
+     *
      * @param world
      *            The {@link World} to enable or disable
      * @param enabled
@@ -132,10 +134,10 @@ public class PerWorldSettingsService {
 
     /**
      * This checks whether the given {@link World} is enabled or not.
-     * 
+     *
      * @param world
      *            The {@link World} to check
-     * 
+     *
      * @return Whether this {@link World} is enabled
      */
     public boolean isWorldEnabled(@Nonnull World world) {
@@ -147,12 +149,12 @@ public class PerWorldSettingsService {
 
     /**
      * This method checks whether the given {@link SlimefunAddon} is enabled in that {@link World}.
-     * 
+     *
      * @param world
      *            The {@link World} to check
      * @param addon
      *            The {@link SlimefunAddon} to check
-     * 
+     *
      * @return Whether this addon is enabled in that {@link World}
      */
     public boolean isAddonEnabled(@Nonnull World world, @Nonnull SlimefunAddon addon) {
@@ -165,13 +167,13 @@ public class PerWorldSettingsService {
      * This will forcefully save the settings for that {@link World}.
      * This should only be called if you altered the settings while the {@link Server} was still running.
      * This writes to a {@link File} so it can be a heavy operation.
-     * 
+     *
      * @param world
      *            The {@link World} to save
      */
     public void save(@Nonnull World world) {
         Validate.notNull(world, "Cannot save a World that does not exist");
-        Set<String> items = disabledItems.computeIfAbsent(world.getUID(), id -> loadWorldFromConfig(world));
+        Set<NamespacedKey> items = disabledItems.computeIfAbsent(world.getUID(), id -> loadWorldFromConfig(world));
 
         Config config = getConfig(world);
 
@@ -186,20 +188,28 @@ public class PerWorldSettingsService {
     }
 
     @Nonnull
-    private Set<String> loadWorldFromConfig(@Nonnull World world) {
+    private Set<NamespacedKey> loadWorldFromConfig(@Nonnull World world) {
         Validate.notNull(world, "Cannot load a World that does not exist");
 
         String name = world.getName();
-        Optional<Set<String>> optional = disabledItems.get(world.getUID());
+        Optional<Set<NamespacedKey>> optional = disabledItems.get(world.getUID());
 
         if (optional.isPresent()) {
             return optional.get();
         } else {
-            Set<String> items = new LinkedHashSet<>();
+            Set<NamespacedKey> items = new LinkedHashSet<>();
             Config config = getConfig(world);
 
-            config.getConfiguration().options().header("This file is used to disable certain items in a particular world.\nYou can set any item to 'false' to disable it in the world '" + name + "'.\nYou can also disable an entire addon from Slimefun by setting the respective\nvalue of 'enabled' for that Addon.\n\nItems which are disabled in this world will not show up in the Slimefun Guide.\nYou won't be able to use these items either. Using them will result in a warning message.");
-            config.getConfiguration().options().copyHeader(true);
+            config.getConfiguration().options().setHeader(List.of(
+                    "This file is used to disable certain items in a particular world.",
+                    "You can set any item to 'false' to disable it in the world '" + name + "'.",
+                    "You can also disable an entire addon from Slimefun by setting the respective",
+                    "value of 'enabled' for that addon.",
+                    "",
+                    "Items which are disabled in this world will not show up in the Slimefun Guide.",
+                    "You won't be able to use these items either. Using them will result in a warning message."
+            ));
+            config.getConfiguration().options().parseComments(true);
             config.setDefaultValue("enabled", true);
 
             if (config.getBoolean("enabled")) {
@@ -217,7 +227,7 @@ public class PerWorldSettingsService {
         }
     }
 
-    private void loadItemsFromWorldConfig(@Nonnull String worldName, @Nonnull Config config, @Nonnull Set<String> items) {
+    private void loadItemsFromWorldConfig(@Nonnull String worldName, @Nonnull Config config, @Nonnull Set<NamespacedKey> items) {
         for (SlimefunItem item : Slimefun.getRegistry().getEnabledSlimefunItems()) {
             if (item != null) {
                 String addon = item.getAddon().getName().toLowerCase(Locale.ROOT);
@@ -241,10 +251,10 @@ public class PerWorldSettingsService {
 
     /**
      * This method returns the relevant {@link Config} for the given {@link World}
-     * 
+     *
      * @param world
      *            Our {@link World}
-     * 
+     *
      * @return The corresponding {@link Config}
      */
     @Nonnull

@@ -2,6 +2,8 @@ package io.github.thebusybiscuit.slimefun4.implementation.items;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import io.github.thebusybiscuit.slimefun4.core.services.LegacyIdService;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
@@ -41,9 +43,31 @@ public class VanillaItem extends SlimefunItem {
      *            the recipe to obtain this {@link VanillaItem}
      */
     @ParametersAreNonnullByDefault
-    public VanillaItem(ItemGroup itemGroup, ItemStack item, String id, RecipeType recipeType, ItemStack[] recipe) {
+    public VanillaItem(ItemGroup itemGroup, ItemStack item, NamespacedKey id, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, id, recipeType, recipe);
 
         useableInWorkbench = true;
+    }
+
+    /**
+     * Instantiates a new {@link VanillaItem} with the given arguments.
+     *
+     * @param itemGroup
+     *            the {@link ItemGroup} to bind this {@link VanillaItem} to
+     * @param item
+     *            the item corresponding to this {@link VanillaItem}
+     * @param id
+     *            the id of this {@link VanillaItem}
+     * @param recipeType
+     *            the type of the recipe to obtain this {@link VanillaItem}
+     * @param recipe
+     *            the recipe to obtain this {@link VanillaItem}
+     *
+     * @deprecated Use {@link VanillaItem#VanillaItem(ItemGroup, ItemStack, NamespacedKey, RecipeType, ItemStack[])} instead
+     */
+    @Deprecated
+    @ParametersAreNonnullByDefault
+    public VanillaItem(ItemGroup itemGroup, ItemStack item, String id, RecipeType recipeType, ItemStack[] recipe) {
+        this(itemGroup, item, LegacyIdService.legacyIdToNamespacedKey(id), recipeType, recipe);
     }
 }

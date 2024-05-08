@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -77,9 +78,10 @@ public class CustomTextureService {
 
         for (SlimefunItem item : items) {
             if (item != null) {
-                config.setDefaultValue(item.getId(), 0);
+                String id = item.getId().toString();
+                config.setDefaultValue(id, 0);
 
-                if (config.getInt(item.getId()) != 0) {
+                if (config.getInt(id) != 0) {
                     modified = true;
                 }
             }
@@ -129,10 +131,10 @@ public class CustomTextureService {
      * 
      * @return The configured custom model data
      */
-    public int getModelData(@Nonnull String id) {
+    public int getModelData(@Nonnull NamespacedKey id) {
         Validate.notNull(id, "Cannot get the ModelData for 'null'");
 
-        return config.getInt(id);
+        return config.getInt(Slimefun.getLegacyIdService().convertTempId(id).toString());
     }
 
     /**
@@ -144,7 +146,7 @@ public class CustomTextureService {
      * @param id
      *            The id for which to get the configured model data
      */
-    public void setTexture(@Nonnull ItemStack item, @Nonnull String id) {
+    public void setTexture(@Nonnull ItemStack item, @Nonnull NamespacedKey id) {
         Validate.notNull(item, "The Item cannot be null!");
         Validate.notNull(id, "Cannot store null on an Item!");
 
@@ -162,12 +164,11 @@ public class CustomTextureService {
      * @param id
      *            The id for which to get the configured model data
      */
-    public void setTexture(@Nonnull ItemMeta im, @Nonnull String id) {
+    public void setTexture(@Nonnull ItemMeta im, @Nonnull NamespacedKey id) {
         Validate.notNull(im, "The ItemMeta cannot be null!");
         Validate.notNull(id, "Cannot store null on an ItemMeta!");
 
         int data = getModelData(id);
         im.setCustomModelData(data == 0 ? null : data);
     }
-
 }

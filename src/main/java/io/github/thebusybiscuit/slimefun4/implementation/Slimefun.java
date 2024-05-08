@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.github.thebusybiscuit.slimefun4.core.services.LegacyIdService;
 import io.github.thebusybiscuit.slimefun4.storage.Storage;
 import io.github.thebusybiscuit.slimefun4.storage.backend.legacy.LegacyStorage;
 
@@ -186,6 +187,7 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
     private final SoundService soundService = new SoundService(this);
     private final ThreadService threadService = new ThreadService(this);
     private final AnalyticsService analyticsService = new AnalyticsService(this);
+    private final LegacyIdService legacyIdService = new LegacyIdService();
 
     // Some other things we need
     private final IntegrationsManager integrations = new IntegrationsManager(this);
@@ -929,9 +931,20 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
     }
 
     /**
+     * This method returns the {@link LegacyIdService} of Slimefun.
+     * It is used to juggle legacy item IDs with their new counterparts.
+     *
+     * @return The {@link LegacyIdService} for Slimefun
+     */
+    public static @Nonnull LegacyIdService getLegacyIdService() {
+        validateInstance();
+        return instance.legacyIdService;
+    }
+
+    /**
      * This returns our {@link NetworkManager} which is responsible
      * for handling the Cargo and Energy networks.
-     * 
+     *
      * @return Our {@link NetworkManager} instance
      */
 

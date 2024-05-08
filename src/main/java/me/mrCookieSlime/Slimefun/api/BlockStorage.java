@@ -18,10 +18,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import io.github.thebusybiscuit.slimefun4.core.services.LegacyIdService;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -249,10 +251,10 @@ public class BlockStorage {
                     }
 
                     io.github.bakedlibs.dough.config.Config cfg = new io.github.bakedlibs.dough.config.Config(file);
-                    BlockMenuPreset preset = BlockMenuPreset.getPreset(cfg.getString("preset"));
+                    BlockMenuPreset preset = BlockMenuPreset.getPreset(getIdFromConfig(cfg, "preset"));
 
                     if (preset == null) {
-                        preset = BlockMenuPreset.getPreset(checkID(l));
+                        preset = BlockMenuPreset.getPreset(getId(l));
                     }
 
                     if (preset != null) {
@@ -274,7 +276,7 @@ public class BlockStorage {
             if (file.getName().endsWith(".sfi")) {
                 try {
                     io.github.bakedlibs.dough.config.Config cfg = new io.github.bakedlibs.dough.config.Config(file);
-                    BlockMenuPreset preset = BlockMenuPreset.getPreset(cfg.getString("preset"));
+                    BlockMenuPreset preset = BlockMenuPreset.getPreset(getIdFromConfig(cfg, "preset"));
 
                     if (preset != null) {
                         Slimefun.getRegistry().getUniversalInventories().put(preset.getID(), new UniversalBlockMenu(preset, cfg));
@@ -294,8 +296,8 @@ public class BlockStorage {
             changes += entry.getValue().getUnsavedChanges();
         }
 
-        Map<String, UniversalBlockMenu> universalInventories2 = new HashMap<>(Slimefun.getRegistry().getUniversalInventories());
-        for (Map.Entry<String, UniversalBlockMenu> entry : universalInventories2.entrySet()) {
+        Map<NamespacedKey, UniversalBlockMenu> universalInventories2 = new HashMap<>(Slimefun.getRegistry().getUniversalInventories());
+        for (Map.Entry<NamespacedKey, UniversalBlockMenu> entry : universalInventories2.entrySet()) {
             changes += entry.getValue().getUnsavedChanges();
         }
     }
@@ -345,8 +347,8 @@ public class BlockStorage {
             entry.getValue().save(entry.getKey());
         }
 
-        Map<String, UniversalBlockMenu> unsavedUniversalInventories = new HashMap<>(Slimefun.getRegistry().getUniversalInventories());
-        for (Map.Entry<String, UniversalBlockMenu> entry : unsavedUniversalInventories.entrySet()) {
+        Map<NamespacedKey, UniversalBlockMenu> unsavedUniversalInventories = new HashMap<>(Slimefun.getRegistry().getUniversalInventories());
+        for (Map.Entry<NamespacedKey, UniversalBlockMenu> entry : unsavedUniversalInventories.entrySet()) {
             entry.getValue().save();
         }
 
@@ -416,7 +418,7 @@ public class BlockStorage {
         SlimefunItem sfitem = SlimefunItem.getByItem(item);
 
         if (sfitem != null) {
-            addBlockInfo(block, "id", sfitem.getId(), true);
+            addBlockInfo(block, "id", sfitem.getId().toString(), true);
         }
     }
 
@@ -560,7 +562,7 @@ public class BlockStorage {
         }
 
         storage.storage.put(l, cfg);
-        String id = cfg.getString("id");
+        NamespacedKey id = getIdFromConfig(cfg, "id");
         BlockMenuPreset preset = BlockMenuPreset.getPreset(id);
 
         if (preset != null) {
@@ -647,7 +649,7 @@ public class BlockStorage {
         }
 
         if (hasBlockInfo(l)) {
-            refreshCache(storage, l, getLocationInfo(l).getString("id"), null, destroy);
+            refreshCache(storage, l, getIdFromConfig(getLocationInfo(l), "id"), null, destroy);
             storage.storage.remove(l);
         }
 
@@ -698,22 +700,22 @@ public class BlockStorage {
             menu.move(to);
         }
 
-        refreshCache(storage, from, previousData.getString("id"), null, true);
+        refreshCache(storage, from, getIdFromConfig(previousData,"id"), null, true);
         storage.storage.remove(from);
 
         Slimefun.getTickerTask().disableTicker(from);
     }
 
-    private static void refreshCache(BlockStorage storage, Location l, String key, String value, boolean updateTicker) {
+    private static void refreshCache(BlockStorage storage, Location l, NamespacedKey key, String value, boolean updateTicker) {
         if (key == null) {
-            /**
+            /*
              * This Block is no longer valid...
              * Fixes #1577
              */
             return;
         }
 
-        Config cfg = storage.blocksCache.computeIfAbsent(key, k -> new Config(PATH_BLOCKS + l.getWorld().getName() + '/' + key + ".sfb"));
+        Config cfg = storage.blocksCache.computeIfAbsent(key.toString(), k -> new Config(PATH_BLOCKS + l.getWorld().getName() + '/' + key + ".sfb"));
         cfg.setValue(serializeLocation(l), value);
 
         if (updateTicker) {
@@ -732,21 +734,33 @@ public class BlockStorage {
 
     @Nullable
     public static SlimefunItem check(@Nonnull Block b) {
-        String id = checkID(b);
+        NamespacedKey id = getId(b);
         return id == null ? null : SlimefunItem.getById(id);
     }
 
     @Nullable
     public static SlimefunItem check(@Nonnull Location l) {
-        String id = checkID(l);
+        NamespacedKey id = getId(l);
         return id == null ? null : SlimefunItem.getById(id);
     }
 
-    public static boolean check(Block block, String slimefunItem) {
-        String id = checkID(block);
-        return id != null && id.equals(slimefunItem);
+    public static boolean check(Block block, NamespacedKey slimefunItem) {
+        NamespacedKey id = getId(block);
+        return id != null && id.equals(Slimefun.getLegacyIdService().convertTempId(slimefunItem));
     }
 
+    /**
+     * @deprecated Use {@link #check(Block, NamespacedKey)} instead.
+     */
+    @Deprecated
+    public static boolean check(Block block, String slimefunItem) {
+        return check(block, LegacyIdService.legacyIdToNamespacedKey(slimefunItem));
+    }
+
+    /**
+     * @deprecated Use {@link #getId(Block)} instead.
+     */
+    @Deprecated
     @Nullable
     public static String checkID(@Nonnull Block b) {
         // Only access the BlockState when on the main thread
@@ -761,18 +775,39 @@ public class BlockStorage {
         return checkID(b.getLocation());
     }
 
+    public static NamespacedKey getId(@Nonnull Block b) {
+        return Slimefun.getLegacyIdService().loadPossibleLegacyId(checkID(b));
+    }
+
+    /**
+     * @deprecated Use {@link #getId(Location)} instead.
+     */
+    @Deprecated
     @Nullable
     public static String checkID(@Nonnull Location l) {
         return getLocationInfo(l, "id");
     }
 
-    public static boolean check(@Nonnull Location l, @Nullable String slimefunItem) {
+    @Nullable
+    public static NamespacedKey getId(@Nonnull Location l) {
+        return Slimefun.getLegacyIdService().loadPossibleLegacyId(checkID(l));
+    }
+
+    public static boolean check(@Nonnull Location l, @Nullable NamespacedKey slimefunItem) {
         if (slimefunItem == null) {
             return false;
         }
 
-        String id = checkID(l);
-        return id != null && id.equals(slimefunItem);
+        NamespacedKey id = getId(l);
+        return id != null && id.equals(Slimefun.getLegacyIdService().convertTempId(slimefunItem));
+    }
+
+    /**
+     * @deprecated Use {@link #check(Location, NamespacedKey)} instead.
+     */
+    @Deprecated
+    public static boolean check(@Nonnull Location l, @Nullable String slimefunItem) {
+        return check(l, LegacyIdService.legacyIdToNamespacedKey(slimefunItem));
     }
 
     public static boolean isWorldLoaded(@Nonnull World world) {
@@ -823,7 +858,7 @@ public class BlockStorage {
         return inventories.containsKey(l);
     }
 
-    public static boolean hasUniversalInventory(String id) {
+    public static boolean hasUniversalInventory(NamespacedKey id) {
         return Slimefun.getRegistry().getUniversalInventories().containsKey(id);
     }
 
@@ -832,11 +867,11 @@ public class BlockStorage {
     }
 
     public static UniversalBlockMenu getUniversalInventory(Location l) {
-        String id = checkID(l);
+        NamespacedKey id = getId(l);
         return id == null ? null : getUniversalInventory(id);
     }
 
-    public static UniversalBlockMenu getUniversalInventory(String id) {
+    public static UniversalBlockMenu getUniversalInventory(NamespacedKey id) {
         return Slimefun.getRegistry().getUniversalInventories().get(id);
     }
 
@@ -866,7 +901,7 @@ public class BlockStorage {
         if (menu != null) {
             return menu;
         } else {
-            return storage.loadInventory(l, BlockMenuPreset.getPreset(checkID(l)));
+            return storage.loadInventory(l, BlockMenuPreset.getPreset(getId(l)));
         }
     }
 
@@ -927,7 +962,15 @@ public class BlockStorage {
     }
 
     public boolean hasUniversalInventory(Location l) {
-        String id = checkID(l);
+        NamespacedKey id = getId(l);
         return id != null && hasUniversalInventory(id);
+    }
+
+    private static NamespacedKey getIdFromConfig(Config config, String key) {
+        return Slimefun.getLegacyIdService().loadPossibleLegacyId(config.getString(key));
+    }
+
+    private static NamespacedKey getIdFromConfig(io.github.bakedlibs.dough.config.Config config, String key) {
+        return Slimefun.getLegacyIdService().loadPossibleLegacyId(config.getString(key));
     }
 }

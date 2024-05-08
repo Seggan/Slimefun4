@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -51,7 +52,10 @@ public final class Language {
         this.id = id;
         this.item = SlimefunUtils.getCustomHead(hash);
 
-        Slimefun.getItemTextureService().setTexture(item, "_UI_LANGUAGE_" + id.toUpperCase(Locale.ROOT));
+        Slimefun.getItemTextureService().setTexture(
+                item,
+                new NamespacedKey(Slimefun.instance(), "_ui_language_" + id.toLowerCase(Locale.ROOT))
+        );
     }
 
     /**

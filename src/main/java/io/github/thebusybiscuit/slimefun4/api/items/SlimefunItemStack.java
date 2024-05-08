@@ -4,17 +4,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.github.thebusybiscuit.slimefun4.core.services.LegacyIdService;
 import org.apache.commons.lang.Validate;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -43,17 +44,16 @@ import io.github.thebusybiscuit.slimefun4.utils.HeadTexture;
  */
 public class SlimefunItemStack extends ItemStack {
 
-    private String id;
+    private NamespacedKey id;
     private ItemMetaSnapshot itemMetaSnapshot;
 
     private boolean locked = false;
     private String texture = null;
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull ItemStack item) {
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull ItemStack item) {
         super(item);
 
         Validate.notNull(id, "The Item id must never be null!");
-        Validate.isTrue(id.equals(id.toUpperCase(Locale.ROOT)), "Slimefun Item Ids must be uppercase! (e.g. 'MY_ITEM_ID')");
 
         if (Slimefun.instance() == null) {
             throw new PrematureCodeException("A SlimefunItemStack must never be be created before your Plugin was enabled.");
@@ -69,7 +69,15 @@ public class SlimefunItemStack extends ItemStack {
         setItemMeta(meta);
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull ItemStack item, @Nonnull Consumer<ItemMeta> consumer) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, ItemStack)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull ItemStack item) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), item);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull ItemStack item, @Nonnull Consumer<ItemMeta> consumer) {
         this(id, item);
 
         ItemMeta im = getItemMeta();
@@ -77,11 +85,27 @@ public class SlimefunItemStack extends ItemStack {
         setItemMeta(im);
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull Material type, @Nonnull Consumer<ItemMeta> consumer) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, ItemStack, Consumer)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull ItemStack item, @Nonnull Consumer<ItemMeta> consumer) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), item, consumer);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull Material type, @Nonnull Consumer<ItemMeta> consumer) {
         this(id, new ItemStack(type), consumer);
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull Material type, @Nullable String name, @Nonnull Consumer<ItemMeta> consumer) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, Material, Consumer)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull Material type, @Nonnull Consumer<ItemMeta> consumer) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), type, consumer);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull Material type, @Nullable String name, @Nonnull Consumer<ItemMeta> consumer) {
         this(id, type, meta -> {
             if (name != null) {
                 meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
@@ -91,7 +115,15 @@ public class SlimefunItemStack extends ItemStack {
         });
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull ItemStack item, @Nullable String name, String... lore) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, Material, String, Consumer)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull Material type, @Nullable String name, @Nonnull Consumer<ItemMeta> consumer) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), type, name, consumer);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull ItemStack item, @Nullable String name, String... lore) {
         this(id, item, im -> {
             if (name != null) {
                 im.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
@@ -108,11 +140,27 @@ public class SlimefunItemStack extends ItemStack {
         });
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull Material type, @Nullable String name, String... lore) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, ItemStack, String, String...)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull ItemStack item, @Nullable String name, String... lore) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), item, name, lore);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull Material type, @Nullable String name, String... lore) {
         this(id, new ItemStack(type), name, lore);
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull Material type, @Nonnull Color color, @Nullable String name, String... lore) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, Material, String, String...)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull Material type, @Nullable String name, String... lore) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), type, name, lore);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull Material type, @Nonnull Color color, @Nullable String name, String... lore) {
         this(id, type, im -> {
             if (name != null) {
                 im.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
@@ -138,7 +186,15 @@ public class SlimefunItemStack extends ItemStack {
         });
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull Color color, @Nonnull PotionEffect effect, @Nullable String name, String... lore) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, Material, Color, String, String...)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull Material type, @Nonnull Color color, @Nullable String name, String... lore) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), type, color, name, lore);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull Color color, @Nonnull PotionEffect effect, @Nullable String name, String... lore) {
         this(id, Material.POTION, im -> {
             if (name != null) {
                 im.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
@@ -165,21 +221,45 @@ public class SlimefunItemStack extends ItemStack {
         });
     }
 
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, Color, PotionEffect, String, String...)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull Color color, @Nonnull PotionEffect effect, @Nullable String name, String... lore) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), color, effect, name, lore);
+    }
+
     public SlimefunItemStack(@Nonnull SlimefunItemStack item, int amount) {
         this(item.getItemId(), item);
         setAmount(amount);
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull String texture, @Nullable String name, String... lore) {
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull String texture, @Nullable String name, String... lore) {
         this(id, getSkull(id, texture), name, lore);
         this.texture = getTexture(id, texture);
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull HeadTexture head, @Nullable String name, String... lore) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, String, String, String...)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull String texture, @Nullable String name, String... lore) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), texture, name, lore);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull HeadTexture head, @Nullable String name, String... lore) {
         this(id, head.getTexture(), name, lore);
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull String texture, @Nullable String name, @Nonnull Consumer<ItemMeta> consumer) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, HeadTexture, String, String...)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull HeadTexture head, @Nullable String name, String... lore) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), head, name, lore);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull String texture, @Nullable String name, @Nonnull Consumer<ItemMeta> consumer) {
         this(id, getSkull(id, texture), meta -> {
             if (name != null) {
                 meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
@@ -191,9 +271,25 @@ public class SlimefunItemStack extends ItemStack {
         this.texture = getTexture(id, texture);
     }
 
-    public SlimefunItemStack(@Nonnull String id, @Nonnull String texture, @Nonnull Consumer<ItemMeta> consumer) {
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, String, String, Consumer)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull String texture, @Nullable String name, @Nonnull Consumer<ItemMeta> consumer) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), texture, name, consumer);
+    }
+
+    public SlimefunItemStack(@Nonnull NamespacedKey id, @Nonnull String texture, @Nonnull Consumer<ItemMeta> consumer) {
         this(id, getSkull(id, texture), consumer);
         this.texture = getTexture(id, texture);
+    }
+
+    /**
+     * @deprecated Use {@link #SlimefunItemStack(NamespacedKey, String, Consumer)} instead.
+     */
+    @Deprecated
+    public SlimefunItemStack(@Nonnull String id, @Nonnull String texture, @Nonnull Consumer<ItemMeta> consumer) {
+        this(LegacyIdService.legacyIdToNamespacedKey(id), texture, consumer);
     }
 
     /**
@@ -201,7 +297,7 @@ public class SlimefunItemStack extends ItemStack {
      * 
      * @return The {@link SlimefunItem} id for this {@link SlimefunItemStack}
      */
-    public final @Nonnull String getItemId() {
+    public final @Nonnull NamespacedKey getItemId() {
         return id;
     }
 
@@ -282,7 +378,7 @@ public class SlimefunItemStack extends ItemStack {
         return itemMetaSnapshot.getDisplayName().orElse(null);
     }
 
-    private static @Nonnull ItemStack getSkull(@Nonnull String id, @Nonnull String texture) {
+    private static @Nonnull ItemStack getSkull(@Nonnull NamespacedKey id, @Nonnull String texture) {
         if (Slimefun.getMinecraftVersion() == MinecraftVersion.UNIT_TEST) {
             return new ItemStack(Material.PLAYER_HEAD);
         }
@@ -291,7 +387,7 @@ public class SlimefunItemStack extends ItemStack {
         return PlayerHead.getItemStack(skin);
     }
 
-    private static @Nonnull String getTexture(@Nonnull String id, @Nonnull String texture) {
+    private static @Nonnull String getTexture(@Nonnull NamespacedKey id, @Nonnull String texture) {
         Validate.notNull(id, "The id cannot be null");
         Validate.notNull(texture, "The texture cannot be null");
 

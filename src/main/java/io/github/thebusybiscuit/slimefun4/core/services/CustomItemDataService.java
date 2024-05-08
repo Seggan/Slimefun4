@@ -5,6 +5,7 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
@@ -63,7 +64,7 @@ public class CustomItemDataService implements Keyed {
      * @param id
      *            The id to store on the {@link ItemStack}
      */
-    public void setItemData(@Nonnull ItemStack item, @Nonnull String id) {
+    public void setItemData(@Nonnull ItemStack item, @Nonnull NamespacedKey id) {
         Validate.notNull(item, "The Item cannot be null!");
         Validate.notNull(id, "Cannot store null on an Item!");
 
@@ -81,12 +82,12 @@ public class CustomItemDataService implements Keyed {
      * @param id
      *            The id to store on the {@link ItemMeta}
      */
-    public void setItemData(@Nonnull ItemMeta meta, @Nonnull String id) {
+    public void setItemData(@Nonnull ItemMeta meta, @Nonnull NamespacedKey id) {
         Validate.notNull(meta, "The ItemMeta cannot be null!");
         Validate.notNull(id, "Cannot store null on an ItemMeta!");
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        container.set(namespacedKey, PersistentDataType.STRING, id);
+        container.set(namespacedKey, PersistentDataType.STRING, id.toString());
     }
 
     /**
@@ -99,7 +100,7 @@ public class CustomItemDataService implements Keyed {
      * 
      * @return An {@link Optional} describing the result
      */
-    public @Nonnull Optional<String> getItemData(@Nullable ItemStack item) {
+    public @Nonnull Optional<NamespacedKey> getItemData(@Nullable ItemStack item) {
         if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) {
             return Optional.empty();
         }
@@ -116,11 +117,12 @@ public class CustomItemDataService implements Keyed {
      * 
      * @return An {@link Optional} describing the result
      */
-    public @Nonnull Optional<String> getItemData(@Nonnull ItemMeta meta) {
+    public @Nonnull Optional<NamespacedKey> getItemData(@Nonnull ItemMeta meta) {
         Validate.notNull(meta, "Cannot read data from null!");
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        return Optional.ofNullable(container.get(namespacedKey, PersistentDataType.STRING));
+        return Optional.ofNullable(container.get(namespacedKey, PersistentDataType.STRING))
+                .map(Slimefun.getLegacyIdService()::loadPossibleLegacyId);
     }
 
     /**
@@ -139,12 +141,12 @@ public class CustomItemDataService implements Keyed {
         Validate.notNull(meta1, "Cannot read data from null (first arg)");
         Validate.notNull(meta2, "Cannot read data from null (second arg)");
 
-        Optional<String> data1 = getItemData(meta1);
+        Optional<NamespacedKey> data1 = getItemData(meta1);
 
         // Check if the first data is present
         if (data1.isPresent()) {
             // Only retrieve the second data where necessary.
-            Optional<String> data2 = getItemData(meta2);
+            Optional<NamespacedKey> data2 = getItemData(meta2);
 
             /*
              * Check if both are present and equal.

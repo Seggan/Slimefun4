@@ -53,7 +53,7 @@ import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
  */
 public final class SlimefunRegistry {
 
-    private final Map<String, SlimefunItem> slimefunIds = new HashMap<>();
+    private final Map<NamespacedKey, SlimefunItem> slimefunIds = new HashMap<>();
     private final List<SlimefunItem> slimefunItems = new ArrayList<>();
     private final List<SlimefunItem> enabledItems = new ArrayList<>();
 
@@ -73,7 +73,7 @@ public final class SlimefunRegistry {
     private boolean logDuplicateBlockEntries;
     private boolean talismanActionBarMessages;
 
-    private final Set<String> tickers = new HashSet<>();
+    private final Set<NamespacedKey> tickers = new HashSet<>();
     private final Set<SlimefunItem> radioactive = new HashSet<>();
     private final Set<ItemStack> barterDrops = new HashSet<>();
 
@@ -89,8 +89,8 @@ public final class SlimefunRegistry {
     private final Map<SlimefunGuideMode, SlimefunGuideImplementation> guides = new EnumMap<>(SlimefunGuideMode.class);
     private final Map<EntityType, Set<ItemStack>> mobDrops = new EnumMap<>(EntityType.class);
 
-    private final Map<String, BlockMenuPreset> blockMenuPresets = new HashMap<>();
-    private final Map<String, UniversalBlockMenu> universalInventories = new HashMap<>();
+    private final Map<NamespacedKey, BlockMenuPreset> blockMenuPresets = new HashMap<>();
+    private final Map<NamespacedKey, UniversalBlockMenu> universalInventories = new HashMap<>();
     private final Map<Class<? extends ItemHandler>, Set<ItemHandler>> globalItemHandlers = new HashMap<>();
 
     public void load(@Nonnull Slimefun plugin, @Nonnull Config cfg) {
@@ -288,22 +288,22 @@ public final class SlimefunRegistry {
     }
 
     @Nonnull
-    public Set<String> getTickerBlocks() {
+    public Set<NamespacedKey> getTickerBlocks() {
         return tickers;
     }
 
     @Nonnull
-    public Map<String, SlimefunItem> getSlimefunItemIds() {
+    public Map<NamespacedKey, SlimefunItem> getSlimefunItemIds() {
         return slimefunIds;
     }
 
     @Nonnull
-    public Map<String, BlockMenuPreset> getMenuPresets() {
+    public Map<NamespacedKey, BlockMenuPreset> getMenuPresets() {
         return blockMenuPresets;
     }
 
     @Nonnull
-    public Map<String, UniversalBlockMenu> getUniversalInventories() {
+    public Map<NamespacedKey, UniversalBlockMenu> getUniversalInventories() {
         return universalInventories;
     }
 

@@ -13,6 +13,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import io.github.thebusybiscuit.slimefun4.core.services.LegacyIdService;
 import org.bukkit.ChatColor;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
@@ -70,24 +71,27 @@ public class RecipeType implements Keyed {
 
     private final ItemStack item;
     private final NamespacedKey key;
-    private final String machine;
+    private final NamespacedKey machine;
     private BiConsumer<ItemStack[], ItemStack> consumer;
 
     private RecipeType() {
         this.item = null;
-        this.machine = "";
+        this.machine = null;
         this.key = new NamespacedKey(Slimefun.instance(), "null");
     }
 
-    public RecipeType(ItemStack item, String machine) {
+    public RecipeType(ItemStack item, NamespacedKey machine) {
         this.item = item;
         this.machine = machine;
+        this.key = machine;
+    }
 
-        if (machine.length() > 0) {
-            this.key = new NamespacedKey(Slimefun.instance(), machine.toLowerCase(Locale.ROOT));
-        } else {
-            this.key = new NamespacedKey(Slimefun.instance(), "unknown");
-        }
+    /**
+     * @deprecated Use {@link #RecipeType(ItemStack, NamespacedKey)} instead
+     */
+    @Deprecated
+    public RecipeType(ItemStack item, String machine) {
+        this(item, LegacyIdService.legacyIdToNamespacedKey(machine));
     }
 
     public RecipeType(NamespacedKey key, SlimefunItemStack slimefunItem, String... lore) {
@@ -102,19 +106,19 @@ public class RecipeType implements Keyed {
         if (item instanceof SlimefunItemStack slimefunItemStack) {
             this.machine = slimefunItemStack.getItemId();
         } else {
-            this.machine = "";
+            this.machine = null;
         }
     }
 
     public RecipeType(NamespacedKey key, ItemStack item) {
         this.key = key;
         this.item = item;
-        this.machine = item instanceof SlimefunItemStack slimefunItemStack ? slimefunItemStack.getItemId() : "";
+        this.machine = item instanceof SlimefunItemStack slimefunItemStack ? slimefunItemStack.getItemId() : null;
     }
 
     public RecipeType(MinecraftRecipe<?> recipe) {
         this.item = new ItemStack(recipe.getMachine());
-        this.machine = "";
+        this.machine = null;
         this.key = NamespacedKey.minecraft(recipe.getRecipeClass().getSimpleName().toLowerCase(Locale.ROOT).replace("recipe", ""));
     }
 

@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.Permission;
@@ -30,7 +31,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
  */
 public class PermissionsService {
 
-    private final Map<String, String> permissions = new HashMap<>();
+    private final Map<NamespacedKey, String> permissions = new HashMap<>();
     private final Config config;
 
     public PermissionsService(@Nonnull Slimefun plugin) {
@@ -134,7 +135,7 @@ public class PermissionsService {
      * This saves every configured {@link Permission} to the permissions {@link File}.
      */
     public void save() {
-        for (Map.Entry<String, String> entry : permissions.entrySet()) {
+        for (Map.Entry<NamespacedKey, String> entry : permissions.entrySet()) {
             config.setValue(entry.getKey() + ".permission", entry.getValue());
         }
 

@@ -5,6 +5,7 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
@@ -132,7 +133,7 @@ final class ProfiledBlock {
     }
 
     @Nonnull
-    public String getId() {
+    public NamespacedKey getId() {
         return item.getId();
     }
 

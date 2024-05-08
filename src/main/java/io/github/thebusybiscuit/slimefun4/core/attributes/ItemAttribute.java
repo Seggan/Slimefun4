@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 
 import io.github.thebusybiscuit.slimefun4.api.items.ItemHandler;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import org.bukkit.NamespacedKey;
 
 /**
  * An empty interface that only serves the purpose of bundling together all
@@ -25,6 +26,6 @@ public interface ItemAttribute {
      * @return the identifier of the {@link SlimefunItem}
      */
     @Nonnull
-    String getId();
+    NamespacedKey getId();
 
 }
